@@ -10,13 +10,15 @@ set(SDL_DISABLE_INSTALL TRUE)
 set(SDL_DISABLE_INSTALL_DOCS TRUE)
 set(SDL_INSTALL_TESTS FALSE)
 
-FetchContent_Declare(SDL
+FetchContent_Declare(SDL3
     GIT_REPOSITORY "https://github.com/libsdl-org/SDL.git"
     GIT_TAG "release-3.2.0"
     GIT_SHALLOW TRUE
     GIT_SUBMODULES ""
     EXCLUDE_FROM_ALL
+    SYSTEM
+    OVERRIDE_FIND_PACKAGE
 )
 
-FetchContent_MakeAvailable(SDL)
+FetchContent_MakeAvailable(SDL3)
 
