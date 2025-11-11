@@ -5,7 +5,10 @@ add_executable(hawkstar
 )
 
 target_compile_options(hawkstar PRIVATE
-    -Werror -Wall -Wextra
+    -Werror
+    -Wall
+    -Wextra
+    -Wno-unused-parameter
 )
 
 target_link_libraries(hawkstar

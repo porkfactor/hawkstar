@@ -1,4 +1,5 @@
 #include <fstream>
+#include <iomanip>
 #include <system_error>
 #include <cxxopts.hpp>
 
@@ -13,14 +14,15 @@ struct ResourceFile
     static std::size_t constexpr byte_wrap = 16U;
 
     ResourceFile(std::string const &path)
-    {}
+    {
+        output_.open(path, std::ios_base::out);
+    }
 
-    bool process(std::string const &input, std::string const &output, std::error_code &ec)
+    bool addContent(std::string const &input, std::error_code &ec)
     {
         bool rv = false;
 
         std::ifstream i(input);
-        output_.open(output, std::ios_base::out);
     
         if(i.good())
         {
@@ -89,17 +91,7 @@ public:
 
 private:
     std::string directory_;
-}
-
-static bool processFile(std::string const &input, std::string const &output, std::error_code &ec)
-{
-    bool rv = false;
-
-    ResourceFile resource("");
-    resource.process(input, output, ec);
-
-    return rv;
-}
+};
 
 static bool parseCommandLine(Config &config, int argc, char const *argv[], std::error_code &ec)
 {
@@ -131,9 +123,11 @@ int main(int argc, char const *argv[])
 
     if(parseCommandLine(config, argc, argv, ec))
     {
+        ResourceFile resource(config.output);
+        
         for(auto const &input : config.input)
         {
-            processFile(input, config.output, ec);
+            resource.addContent(input, ec);
         }
     }
 
