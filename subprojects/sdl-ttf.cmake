@@ -4,7 +4,7 @@ include(FetchContent)
 
 FetchContent_Declare(sdl-ttf
     GIT_REPOSITORY "git@github.com:libsdl-org/SDL_ttf.git"
-    GIT_TAG "main"
+    GIT_TAG "release-3.2.0"
     GIT_SHALLOW TRUE
     GIT_SUBMODULES ""
     EXCLUDE_FROM_ALL
