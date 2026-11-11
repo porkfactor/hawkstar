@@ -11,9 +11,9 @@ public:
     Entity();
 
 private:
-    point2 location_;
-    vector2 direction_;
-    unique_sdl_texture texture_;
+    point<double> position_;
+    vector<double> movement_;
+    vector<double> acceleration_;
 };
 
 #endif

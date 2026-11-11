@@ -1,4 +1,4 @@
-#include <ResourceManager.hpp>
+#include "resource_manager.hpp"
 
 namespace hawkstar
 {
@@ -13,6 +13,4 @@ namespace hawkstar
 
         return instance_;
     }
-
-    
 }

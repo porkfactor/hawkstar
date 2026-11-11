@@ -3,10 +3,11 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <string_view>
+
+#include <blessed/string_view>
+#include <blessed/intrusive_ptr.hpp>
 
 #include "texture.hpp"
-#include <hawkstar/intrusive_ptr.hpp>
 
 class Texture
 {
