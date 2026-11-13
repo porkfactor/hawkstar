@@ -26,10 +26,24 @@ namespace hawkstar
             y_(other.y_)
         {}
 
+        template<typename _Other>
+        explicit point(point<_Other> const &other) :
+            x_(static_cast<value_type>(other.x())),
+            y_(static_cast<value_type>(other.y()))
+        {}
+
         point &operator=(point const &other)
         {
             x_ = other.x_;
             y_ = other.y_;
+            return *this;
+        }
+
+        template<typename _Other>
+        point &operator=(point<_Other> const &other)
+        {
+            x_ = static_cast<value_type>(other.x());
+            y_ = static_cast<value_type>(other.y());
             return *this;
         }
 
@@ -70,7 +84,13 @@ namespace hawkstar
         friend inline point operator+(point const &l, vector<value_type> const &v)
         {
             point result{l};
-            return l += v;
+            return result += v;
+        }
+
+        friend inline point operator-(point const &l, vector<value_type> const &v)
+        {
+            point result{l};
+            return result -= v;
         }
 
     private:

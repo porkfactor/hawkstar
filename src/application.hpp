@@ -1,10 +1,13 @@
 #ifndef HAWKSTAR_APPLICATION_HPP_
 #define HAWKSTAR_APPLICATION_HPP_
 
+#include <blessed/span.hpp>
+
 #include "camera.hpp"
 #include "rectangle.hpp"
 #include "point.hpp"
 #include "stage_map.hpp"
+#include "entity.hpp"
 
 struct SDL_Renderer;
 struct SDL_Window;
@@ -43,15 +46,27 @@ namespace hawkstar
             return renderer_;
         }
 
-        rectangle<std::size_t> getScreenBounds(void) const;
-        rectangle<std::size_t> getRenderBounds(void) const;
+        rectangle<double> getScreenBounds(void) const;
+
+        /**
+         * @brief get a world rectangle based on the current camera position
+         */
+        rectangle<double> getRenderBounds(void) const;
+
+        void periodic(void);
+        void onKeyDown(SDL_KeyboardEvent const &);
+        void onKeyUp(SDL_KeyboardEvent const &);
+        bool running(void) const noexcept;
 
     private:
         struct SDL_Window *window_;
         struct SDL_Renderer *renderer_;
 
-        Camera camera_;
+        blessed::span<bool const> keyState_;
+
         StageMap map_;
+        Camera camera_;
+        Entity player_;
     };
 }
 

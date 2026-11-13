@@ -20,6 +20,8 @@ SDL_AppResult SDL_AppInit(void **opaque, int argc, char *argv[])
         return SDL_APP_FAILURE;
     }
 
+    SDL_SetRenderVSync(renderer, 1);
+
     void *ptr = SDL_calloc(1, sizeof(hawkstar::Application));
     hawkstar::Application *application = new (ptr) hawkstar::Application(window, renderer);
 
@@ -31,11 +33,27 @@ SDL_AppResult SDL_AppInit(void **opaque, int argc, char *argv[])
 /* This function runs when a new event (mouse input, keypresses, etc) occurs. */
 SDL_AppResult SDL_AppEvent(void *opaque, SDL_Event *event)
 {
-    if (event->type == SDL_EVENT_KEY_DOWN ||
-        event->type == SDL_EVENT_QUIT) {
-        return SDL_APP_SUCCESS;  /* end the program, reporting success to the OS. */
+    SDL_AppResult result{SDL_APP_CONTINUE};
+    hawkstar::Application *self = hawkstar::Application::upcast(opaque);
+
+    switch (event->type)
+    {
+    case SDL_EVENT_KEY_DOWN:
+        self->onKeyDown(event->key);
+        break;
+
+    case SDL_EVENT_KEY_UP:
+        self->onKeyUp(event->key);
+        break;
+
+    case SDL_EVENT_QUIT:
+        result = SDL_APP_SUCCESS;
+        break;
+    default:
+        break;
     }
-    return SDL_APP_CONTINUE;
+
+    return result;
 }
 
 /* This function runs once per frame, and is the heart of the program. */
@@ -43,9 +61,14 @@ SDL_AppResult SDL_AppIterate(void *opaque)
 {
     hawkstar::Application *self = hawkstar::Application::upcast(opaque);
 
-    self->draw();
+    if (self->running())
+    {
+        self->periodic();
+        self->draw();
+        return SDL_APP_CONTINUE;
+    }
 
-    return SDL_APP_CONTINUE;
+    return SDL_APP_SUCCESS;
 }
 
 /* This function runs once at shutdown. */

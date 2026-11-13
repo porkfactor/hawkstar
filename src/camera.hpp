@@ -24,6 +24,16 @@ namespace hawkstar
             return point_.y();
         }
 
+        inline point_type const &position() const noexcept
+        {
+            return point_;
+        }
+
+        void move(vector<double> const &v)
+        {
+            point_ += v;
+        }
+
         void move(point_type const &p)
         {
             point_ = p;

@@ -8,13 +8,13 @@
 
 namespace detail
 {
-    template<typename _Type, blessed::enable_if_t<std::is_floating_point<_Type>::value, bool> = 0>
+    template<typename _Type, blessed::enable_if_t<std::is_floating_point<_Type>::value, bool> = true>
     static inline _Type sqrt(_Type const &v)
     {
         return std::sqrt(v);
     }
 
-    template<typename _Type, blessed::enable_if_t<std::is_integral<_Type>::value, bool> = 0>
+    template<typename _Type, blessed::enable_if_t<std::is_integral<_Type>::value, bool> = true>
     static inline _Type sqrt(_Type const &v)
     {
         return static_cast<_Type>(std::sqrt(static_cast<double>(v)));
@@ -34,7 +34,7 @@ namespace hawkstar
             y_{}
         {}
     
-        vector(float px, float py) :
+        vector(value_type px, value_type py) :
             x_(px),
             y_(py)
         {}
@@ -100,33 +100,23 @@ namespace hawkstar
         {
             return vector(std::floor(x_), std::floor(y_));
         }
-    
-        template<typename _Scale, blessed::enable_if_t<std::is_integral<_Type>::value, bool> = 0>
-        vector &operator*=(_Scale r)
+
+        vector &operator-()
         {
-            x_ = x_ * static_cast<value_type>(r);
-            y_ = y_ * static_cast<value_type>(r);
+            x_ = -x_;
+            y_ = -y_;
             return *this;
-        };
-    
-        template<typename _ScaleType, blessed::enable_if_t<std::is_floating_point<_Type>::value, bool> = 0>
+        }
+
+        template<typename _ScaleType>
         vector &operator*=(_ScaleType r)
         {
             x_ = x_ * static_cast<value_type>(r);
             y_ = y_ * static_cast<value_type>(r);
-            
             return *this;
         };
-    
-        template<typename _ScaleType, blessed::enable_if_t<std::is_integral<_Type>::value, bool> = 0>
-        vector &operator/=(_ScaleType const &r)
-        {
-            x_ = x_ / static_cast<value_type>(r);
-            y_ = y_ / static_cast<value_type>(r);
-            return *this;
-        };
-    
-        template<typename _ScaleType, blessed::enable_if_t<std::is_floating_point<_Type>::value, bool> = 0>
+
+        template<typename _ScaleType>
         vector &operator/=(_ScaleType const &r)
         {
             x_ = x_ / static_cast<value_type>(r);
@@ -267,7 +257,7 @@ namespace hawkstar
             return vector3(std::floor(x_), std::floor(y_), std::floor(z_));
         }
     
-        template<typename _Type, blessed::enable_if_t<std::is_integral<_Type>::value, bool> = 0>
+        template<typename _Type, blessed::enable_if_t<std::is_integral<_Type>::value, bool> = true>
         vector3 &operator*=(_Type r)
         {
             x_ = x_ * static_cast<value_type>(r);
@@ -276,7 +266,7 @@ namespace hawkstar
             return *this;
         };
     
-        template<typename _Type, blessed::enable_if_t<std::is_floating_point<_Type>::value, bool> = 0>
+        template<typename _Type, blessed::enable_if_t<std::is_floating_point<_Type>::value, bool> = true>
         vector3 &operator*=(_Type r)
         {
             x_ = x_ * static_cast<value_type>(r);
@@ -285,7 +275,7 @@ namespace hawkstar
             return *this;
         };
     
-        template<typename _Type, blessed::enable_if_t<std::is_integral<_Type>::value, bool> = 0>
+        template<typename _Type, blessed::enable_if_t<std::is_integral<_Type>::value, bool> = true>
         vector3 &operator/=(_Type const &r)
         {
             x_ = x_ / static_cast<value_type>(r);
@@ -294,7 +284,7 @@ namespace hawkstar
             return *this;
         };
     
-        template<typename _Type, blessed::enable_if_t<std::is_floating_point<_Type>::value, bool> = 0>
+        template<typename _Type, blessed::enable_if_t<std::is_floating_point<_Type>::value, bool> = true>
         vector3 &operator/=(_Type const &r)
         {
             x_ = x_ / static_cast<value_type>(r);

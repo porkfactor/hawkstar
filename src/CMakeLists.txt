@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.25.0)
 add_executable(hawkstar
     ${CMAKE_CURRENT_SOURCE_DIR}/application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/application.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/entity.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/entity.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/sdl_main.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/stage_map.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/stage_map.hpp

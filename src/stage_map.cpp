@@ -171,6 +171,16 @@ namespace hawkstar
         return rectangle<std::size_t>{x, y, width, height};
     }
 
+    rectangle<std::size_t> StageMap::getWorldRegion(rectangle<std::size_t> const &r) const
+    {
+        return rectangle<std::size_t>(
+            r.x() * tile_width,
+            r.y() * tile_height,
+            r.width() * tile_width,
+            r.height() * tile_height
+        );
+    }
+
     rectangle<std::size_t> StageMap::getWorldRegion(std::size_t x, std::size_t y) const
     {
         return rectangle<std::size_t>{x * tile_width, y * tile_height, tile_width, tile_height};
