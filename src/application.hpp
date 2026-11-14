@@ -9,8 +9,7 @@
 #include "stage_map.hpp"
 #include "entity.hpp"
 
-struct SDL_Renderer;
-struct SDL_Window;
+#include "sdl.hpp"
 
 namespace hawkstar
 {
@@ -38,12 +37,12 @@ namespace hawkstar
 
         inline struct SDL_Window *window() const noexcept
         {
-            return window_;
+            return window_.get();
         }
 
         inline struct SDL_Renderer *renderer() const noexcept
         {
-            return renderer_;
+            return renderer_.get();
         }
 
         rectangle<double> getScreenBounds(void) const;
@@ -59,8 +58,8 @@ namespace hawkstar
         bool running(void) const noexcept;
 
     private:
-        struct SDL_Window *window_;
-        struct SDL_Renderer *renderer_;
+        sdl::unique_window window_;
+        sdl::unique_renderer renderer_;
 
         blessed::span<bool const> keyState_;
 

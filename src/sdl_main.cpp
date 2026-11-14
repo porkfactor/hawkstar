@@ -8,12 +8,12 @@
 #include <blessed/intrusive_ptr.hpp>
 #include <blessed/string_view.hpp>
 
-static SDL_Window *window = NULL;
-static SDL_Renderer *renderer = NULL;
-
 /* This function runs once at startup. */
 SDL_AppResult SDL_AppInit(void **opaque, int argc, char *argv[])
 {
+    SDL_Window *window{};
+    SDL_Renderer *renderer{};
+
     /* Create the window */
     if (!SDL_CreateWindowAndRenderer("HawkStar", 1024, 768, 0, &window, &renderer)) {
         SDL_Log("Couldn't create window and renderer: %s", SDL_GetError());

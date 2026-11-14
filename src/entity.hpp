@@ -47,6 +47,7 @@ namespace hawkstar
         vector<double> velocity_;
         vector<double> delta_velocity_;
         double max_velocity_;
+        double max_jump_;
         enum PlayerState state_;
     };
 }

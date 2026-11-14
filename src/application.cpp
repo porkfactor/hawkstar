@@ -51,7 +51,7 @@ namespace hawkstar
         int w{};
         int h{};
 
-        SDL_GetWindowSize(window_, &w, &h);
+        SDL_GetWindowSize(window(), &w, &h);
 
         return rectangle<double>(static_cast<double>(w), static_cast<double>(h));
     }
@@ -61,7 +61,7 @@ namespace hawkstar
         int w{};
         int h{};
 
-        SDL_GetRenderOutputSize(renderer_, &w, &h);
+        SDL_GetRenderOutputSize(renderer(), &w, &h);
 
         double dw = static_cast<double>(w);
         double dh = static_cast<double>(h);
@@ -113,9 +113,9 @@ namespace hawkstar
 
     void Application::draw(void)
     {
-        SDL_SetRenderDrawColor(renderer_, 0, 0, 0, 255);
-        SDL_RenderClear(renderer_);
-        SDL_SetRenderScale(renderer_, 1.0f, 1.0f);
+        SDL_SetRenderDrawColor(renderer(), 0, 0, 0, 255);
+        SDL_RenderClear(renderer());
+        SDL_SetRenderScale(renderer(), 1.0f, 1.0f);
 
         {
             rectangle<double> screen = getRenderBounds();
@@ -127,7 +127,7 @@ namespace hawkstar
                 assert((wr.width() >= screen.width()) && (wr.height() >= screen.height()));
             }
 
-            SDL_SetRenderDrawColor(renderer_, 255, 0, 0, 255);
+            SDL_SetRenderDrawColor(renderer(), 255, 0, 0, 255);
             for (std::size_t x = 0; x < tr.width(); ++x)
             {
                 for (std::size_t y = 0; y < tr.height(); ++y)
@@ -144,7 +144,7 @@ namespace hawkstar
 
                         SDL_FRect frect{translateRenderRect(tm, screen)};
     
-                        SDL_RenderFillRect(renderer_, &frect);
+                        SDL_RenderFillRect(renderer(), &frect);
                     }
                 }
             }
@@ -155,12 +155,12 @@ namespace hawkstar
 
             SDL_snprintf(camera_text, sizeof(camera_text), "x: %.02f y: %.02f", camera_.x(), camera_.y());
 
-            SDL_SetRenderScale(renderer_, 2.0f, 2.0f);
-            SDL_SetRenderDrawColor(renderer_, 255, 255, 255, 255);
-            SDL_RenderDebugText(renderer_, 0, 0, camera_text);
+            SDL_SetRenderScale(renderer(), 2.0f, 2.0f);
+            SDL_SetRenderDrawColor(renderer(), 255, 255, 255, 255);
+            SDL_RenderDebugText(renderer(), 0, 0, camera_text);
         }
 
-        SDL_RenderPresent(renderer_);
+        SDL_RenderPresent(renderer());
     }
 
     void Application::onKeyDown(SDL_KeyboardEvent const &e)
