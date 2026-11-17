@@ -4,6 +4,26 @@
 #include "point.hpp"
 #include "vector.hpp"
 
+/**
+ * processing player movement
+ *     - what happens if the user presses left and right at the same time?
+ *         ideally nothing
+ *     - is it better to concern ourselves with forces rather than states?
+ *         - jump + run behaves differently to run + jump
+ *         - there is no way to avoid some form of state machine, but I guess
+ *         forces can concern themselves with 'can this force apply'.
+ *         - state needed to handle animation
+ *         how do we best handle this? I think it is probably better to be
+ *         state first, physics second, to handle the cooked physics of fun.
+ *         - do we have any benefit to incorporating direction into state, or
+ *         do we track that separately. then, there are two aspects to direction:
+ *             - the direction we are travelling
+ *             - the direction we are facing
+ * 
+ * conclusion - keep high-level state types, maintain separate information that is
+ * required for rendering. 
+ */
+
 namespace hawkstar
 {
     enum PlayerState
@@ -15,6 +35,7 @@ namespace hawkstar
         PLAYER_STATE_SKIDDING,
         PLAYER_STATE_FREEFALL,
         PLAYER_STATE_CROUCHING,
+        PLAYER_STATE_JUMPING,
     };
 
     enum PlayerAction

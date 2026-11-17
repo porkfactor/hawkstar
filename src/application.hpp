@@ -52,7 +52,7 @@ namespace hawkstar
          */
         rectangle<double> getRenderBounds(void) const;
 
-        void periodic(void);
+        void periodic(std::chrono::milliseconds);
         void onKeyDown(SDL_KeyboardEvent const &);
         void onKeyUp(SDL_KeyboardEvent const &);
         bool running(void) const noexcept;

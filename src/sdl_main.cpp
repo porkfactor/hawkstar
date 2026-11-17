@@ -9,13 +9,14 @@
 #include <blessed/string_view.hpp>
 
 /* This function runs once at startup. */
-SDL_AppResult SDL_AppInit(void **opaque, int argc, char *argv[])
+SDL_AppResult SDL_AppInit(void **opaque, int argc SDL_UNUSED, char *argv[] SDL_UNUSED)
 {
     SDL_Window *window{};
     SDL_Renderer *renderer{};
 
     /* Create the window */
-    if (!SDL_CreateWindowAndRenderer("HawkStar", 1024, 768, 0, &window, &renderer)) {
+    if (!SDL_CreateWindowAndRenderer("HawkStar", 1024, 768, 0, &window, &renderer))
+    {
         SDL_Log("Couldn't create window and renderer: %s", SDL_GetError());
         return SDL_APP_FAILURE;
     }
@@ -60,21 +61,26 @@ SDL_AppResult SDL_AppEvent(void *opaque, SDL_Event *event)
 SDL_AppResult SDL_AppIterate(void *opaque)
 {
     hawkstar::Application *self = hawkstar::Application::upcast(opaque);
+    static std::chrono::milliseconds previousTicks{};
+    std::chrono::milliseconds currentTicks(SDL_GetTicks());
 
     if (self->running())
     {
-        self->periodic();
+        self->periodic(currentTicks - previousTicks);
         self->draw();
         return SDL_APP_CONTINUE;
     }
+
+    previousTicks = currentTicks;
 
     return SDL_APP_SUCCESS;
 }
 
 /* This function runs once at shutdown. */
-void SDL_AppQuit(void *opaque, SDL_AppResult result)
+void SDL_AppQuit(void *opaque, SDL_AppResult result SDL_UNUSED)
 {
     hawkstar::Application *self = hawkstar::Application::upcast(opaque);
 
-    delete self;
+    self->~Application();
+    SDL_free(self);
 }

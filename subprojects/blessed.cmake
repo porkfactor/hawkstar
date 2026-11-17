@@ -7,6 +7,7 @@ FetchContent_Declare(blessed
     GIT_TAG "main"
     GIT_SHALLOW TRUE
     GIT_SUBMODULES ""
+    SYSTEM
     EXCLUDE_FROM_ALL
 )
 

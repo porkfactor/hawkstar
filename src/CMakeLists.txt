@@ -25,7 +25,7 @@ target_compile_options(hawkstar PRIVATE
     -Werror
     -Wall
     -Wextra
-    -Wno-unused-parameter
+    -Wpedantic
 )
 
 target_include_directories(hawkstar PRIVATE

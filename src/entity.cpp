@@ -23,7 +23,9 @@ namespace hawkstar
      * possible transitions for any event so might as well 
      */
 
-    void Entity::actionOn(enum PlayerAction a)
+
+
+     void Entity::actionOn(enum PlayerAction a)
     {
         SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "+action [%d] state=%d\n",
             static_cast<int>(a),
@@ -41,15 +43,28 @@ namespace hawkstar
                 state_ = PLAYER_STATE_ACCELERATING;
                 break;
             case PLAYER_ACTION_DOWN:
+                break;
             case PLAYER_ACTION_UP:
+                delta_velocity_ = vector<double>(0.0, 1.0);
+                state_ = PLAYER_STATE_JUMPING;
                 break;
             }
             break;
 
+        
         case PLAYER_STATE_ACCELERATING:
             break;
 
         case PLAYER_STATE_RUNNING:
+            switch (a)
+            {
+            case PLAYER_ACTION_LEFT:
+            case PLAYER_ACTION_RIGHT:
+            case PLAYER_ACTION_DOWN:
+                break;
+            case PLAYER_ACTION_UP:
+                break;
+            }
             break;
 
         case PLAYER_STATE_STOPPING:

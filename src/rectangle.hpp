@@ -126,6 +126,14 @@ namespace hawkstar
             return y_ + height_;
         }
 
+        inline point<value_type> centre() const noexcept
+        {
+            return point<value_type>(
+                x_ + (width_ / value_type{2}),
+                y_ + (height_ / value_type{2})
+            );
+        }
+
         inline point<value_type> origin() const noexcept
         {
             return point<value_type>{x_, y_};

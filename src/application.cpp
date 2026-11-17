@@ -84,7 +84,7 @@ namespace hawkstar
         };
     }
 
-    void Application::periodic(void)
+    void Application::periodic(std::chrono::milliseconds deltat SDL_UNUSED)
     {
         player_.periodic();
 
@@ -109,6 +109,21 @@ namespace hawkstar
      * use a translation point (-1.5, -0.5) - in general we're setting a
      * clipping point at one of the four vertices
      * 
+     * Update: so, we've got this a little wrong. The camera needs to be dead-
+     * centre, but we're currently translating the player position based on
+     * bottom-left corner, so the camera is offset by <pw/2, ph/2>. 
+     * 
+     * It makes sense that the camera is <0,0> on pseudo-screen co-ordinates at
+     * all tims. It may make sense for the player position to be centre located.
+     * 
+     * In fact, all 'live' screen entities should be centre bounded. Ugh. 
+     * 
+     * 1/ Setting camera position. This needs to translate not the player position
+     * but the player centre to the centre of the screen.
+     * 
+     * 2/ Establish a viewport. A rectangle based on world co-ordinates that maps
+     * the screen location to the world. 
+     * 
      */
 
     void Application::draw(void)
@@ -117,8 +132,9 @@ namespace hawkstar
         SDL_RenderClear(renderer());
         SDL_SetRenderScale(renderer(), 1.0f, 1.0f);
 
+        rectangle<double> screen = getRenderBounds();
+
         {
-            rectangle<double> screen = getRenderBounds();
             rectangle<std::size_t> tr{map_.getTileRegion(rectangle<std::size_t>{screen})};
             // vector<double> delta = screen.origin() - point<double>(tr.origin());
 
@@ -148,6 +164,18 @@ namespace hawkstar
                     }
                 }
             }
+        }
+
+        {
+            SDL_FRect prect{
+                static_cast<float>(screen.width() / 2.0) - 16.0f,
+                static_cast<float>(screen.height() / 2.0) - 16.0f,
+                16.0f,
+                16.0f
+            };
+
+            SDL_SetRenderDrawColor(renderer(), 255, 255, 255, 255);
+            SDL_RenderFillRect(renderer(), &prect);
         }
 
         {
