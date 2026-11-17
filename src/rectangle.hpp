@@ -126,12 +126,45 @@ namespace hawkstar
             return y_ + height_;
         }
 
+        /**
+         * @brief get the centre point of the rectangle
+         * 
+         */
         inline point<value_type> centre() const noexcept
         {
             return point<value_type>(
                 x_ + (width_ / value_type{2}),
                 y_ + (height_ / value_type{2})
             );
+        }
+
+        /**
+         * @brief reposition to use @p pos as centre point
+         * 
+         * @param pos                   the point on which to centre the rectangle
+         */
+        void centre(point<value_type> const &pos) noexcept
+        {
+            centre(pos.x(), pos.y());
+        }
+
+        void centre(value_type px, value_type py) noexcept
+        {
+            move(
+                px - (width_ / value_type{2}),
+                py - (height_ / value_type{2})
+            );
+        }
+
+        void move(point<value_type> const &pos) noexcept
+        {
+            move(pos.x(), pos.y());
+        }
+
+        void move(value_type px, value_type py) noexcept
+        {
+            x_ = px;
+            y_ = py;
         }
 
         inline point<value_type> origin() const noexcept

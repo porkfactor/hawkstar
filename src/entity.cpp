@@ -4,7 +4,7 @@
 namespace hawkstar
 {
     Entity::Entity() :
-        position_{},
+        bounds_{0, 0, 16.0, 16.0},
         delta_velocity_{},
         max_velocity_{8.0},
         state_{PLAYER_STATE_IDLE}
@@ -178,6 +178,6 @@ namespace hawkstar
             delta_velocity_.x(), delta_velocity_.y()
         );
 
-        position_ += velocity_;
+        bounds_.move(bounds_.origin() + velocity_);
     }
 }

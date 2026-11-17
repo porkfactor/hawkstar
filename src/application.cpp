@@ -88,7 +88,7 @@ namespace hawkstar
     {
         player_.periodic();
 
-        camera_.move(player_.position());
+        camera_.move(player_.centre());
     }
 
     /**
@@ -167,12 +167,7 @@ namespace hawkstar
         }
 
         {
-            SDL_FRect prect{
-                static_cast<float>(screen.width() / 2.0) - 16.0f,
-                static_cast<float>(screen.height() / 2.0) - 16.0f,
-                16.0f,
-                16.0f
-            };
+            SDL_FRect prect{translateRenderRect(player_.bounds(), screen)};
 
             SDL_SetRenderDrawColor(renderer(), 255, 255, 255, 255);
             SDL_RenderFillRect(renderer(), &prect);

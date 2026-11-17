@@ -2,6 +2,7 @@
 #define HAWKSTAR_ENTITY_HPP_
 
 #include "point.hpp"
+#include "rectangle.hpp"
 #include "vector.hpp"
 
 /**
@@ -53,9 +54,14 @@ namespace hawkstar
 
         void move(point<double> pos);
 
-        point<double> const &position() const noexcept
+        point<double> centre() const noexcept
         {
-            return position_;
+            return bounds_.centre();
+        }
+
+        inline rectangle<double> const &bounds() const noexcept
+        {
+            return bounds_;
         }
 
         void periodic(void);
@@ -64,7 +70,7 @@ namespace hawkstar
         void actionOff(enum PlayerAction);
 
     private:
-        point<double> position_;
+        rectangle<double> bounds_;
         vector<double> velocity_;
         vector<double> delta_velocity_;
         double max_velocity_;
