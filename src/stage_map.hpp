@@ -4,16 +4,15 @@
 #include <cstdint>
 #include <array>
 
-#include "point.hpp"
-#include "rectangle.hpp"
+#include "types.hpp"
 
 namespace hawkstar
 {
     class StageMap
     {
     public:
-        static std::size_t constexpr tile_width = 16;
-        static std::size_t constexpr tile_height = 16;
+        static tile_integral_t constexpr tile_width = tile_integral_t{16};
+        static tile_integral_t constexpr tile_height = tile_integral_t{16};
 
         StageMap();
 
@@ -22,15 +21,27 @@ namespace hawkstar
 
         void clear();
 
-        uint8_t getId(size_t x, size_t y);
-        uint8_t getId(point<std::size_t> const &);
+        uint8_t getId(tile_integral_t x, tile_integral_t y) const noexcept;
+        uint8_t getId(tile_point const &) const noexcept;
 
-        rectangle<std::size_t> getBounds() const;
+        world_rectangle tileToWorld(tile_rectangle const &) const noexcept;
+        world_point tileToWorld(tile_point const &) const noexcept;
+        tile_rectangle worldToTile(world_rectangle const &) const noexcept;
+        tile_point worldToTile(world_point const &) const noexcept;
 
-        rectangle<std::size_t> getTileRegion(rectangle<std::size_t> const &) const;
-        rectangle<std::size_t> getWorldRegion(rectangle<std::size_t> const &) const;
-        rectangle<std::size_t> getWorldRegion(point<std::size_t> const &) const;
-        rectangle<std::size_t> getWorldRegion(std::size_t x, std::size_t y) const;
+        tile_rectangle getTileBounds() const noexcept;
+        world_rectangle getWorldBounds() const noexcept;
+
+        tile_rectangle getTileRegion(world_rectangle const &) const;
+        world_rectangle getWorldRegion(tile_rectangle const &) const;
+        world_rectangle getWorldRegion(tile_point const &) const;
+        world_rectangle getWorldRegion(tile_integral_t, tile_integral_t) const;
+
+        bool has_intersection(point<double>);
+        bool raycast(world_point const &, world_vector const &, double = double{}) const noexcept;
+        bool raycast(world_rectangle const &, world_vector const &, double = double{}) const noexcept;
+
+        world_point try_move(world_point const &, world_vector const &) const noexcept;
 
     private:
         std::array<uint8_t, 256 * 256> data_;

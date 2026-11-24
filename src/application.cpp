@@ -8,7 +8,8 @@ namespace hawkstar
 {
     Application::Application(SDL_Window *w, SDL_Renderer *r) :
         window_(w),
-        renderer_(r)
+        renderer_(r),
+        player_(this)
     {
         int keyCount{};
         bool const *keyState = SDL_GetKeyboardState(&keyCount);
@@ -86,7 +87,9 @@ namespace hawkstar
 
     void Application::periodic(std::chrono::milliseconds deltat SDL_UNUSED)
     {
-        player_.periodic();
+        double seconds = static_cast<double>(deltat.count()) / 1000.0;
+
+        player_.periodic(map_, seconds);
 
         camera_.move(player_.centre());
     }
@@ -134,9 +137,17 @@ namespace hawkstar
 
         rectangle<double> screen = getRenderBounds();
 
+        /**
+         * NOTE: we're repeating work here by determining what the player is standing on.
+         * 
+         * we've already figured this out in entity::periodic. the question is whether we
+         * store this state somewhere, or just leave it as calculated (it's not exactly
+         * expensive at the moment).
+         */
+
         {
-            rectangle<std::size_t> tr{map_.getTileRegion(rectangle<std::size_t>{screen})};
-            // vector<double> delta = screen.origin() - point<double>(tr.origin());
+            tile_rectangle tr{map_.getTileRegion(world_rectangle{screen})};
+            // world_vector delta = screen.origin() - point<double>(tr.origin());
 
             {
                 auto wr = map_.getWorldRegion(tr);
@@ -144,9 +155,9 @@ namespace hawkstar
             }
 
             SDL_SetRenderDrawColor(renderer(), 255, 0, 0, 255);
-            for (std::size_t x = 0; x < tr.width(); ++x)
+            for (tile_integral_t x = 0; x < tr.width(); ++x)
             {
-                for (std::size_t y = 0; y < tr.height(); ++y)
+                for (tile_integral_t y = 0; y < tr.height(); ++y)
                 {
                     auto id = map_.getId(x, y);
 
@@ -191,16 +202,16 @@ namespace hawkstar
         switch (e.scancode)
         {
         case SDL_SCANCODE_W:
-            player_.actionOn(PLAYER_ACTION_UP);
+            player_.actionOn(map_, PLAYER_ACTION_UP);
             break;
         case SDL_SCANCODE_D:
-            player_.actionOn(PLAYER_ACTION_RIGHT);
+            player_.actionOn(map_, PLAYER_ACTION_RIGHT);
             break;
         case SDL_SCANCODE_A:
-            player_.actionOn(PLAYER_ACTION_LEFT);
+            player_.actionOn(map_, PLAYER_ACTION_LEFT);
             break;
         case SDL_SCANCODE_S:
-            player_.actionOn(PLAYER_ACTION_DOWN);
+            player_.actionOn(map_, PLAYER_ACTION_DOWN);
             break;
         default:
             break;
@@ -212,16 +223,16 @@ namespace hawkstar
         switch (e.scancode)
         {
         case SDL_SCANCODE_W:
-            player_.actionOff(PLAYER_ACTION_UP);
+            player_.actionOff(map_, PLAYER_ACTION_UP);
             break;
         case SDL_SCANCODE_D:
-            player_.actionOff(PLAYER_ACTION_RIGHT);
+            player_.actionOff(map_, PLAYER_ACTION_RIGHT);
             break;
         case SDL_SCANCODE_A:
-            player_.actionOff(PLAYER_ACTION_LEFT);
+            player_.actionOff(map_, PLAYER_ACTION_LEFT);
             break;
         case SDL_SCANCODE_S:
-            player_.actionOff(PLAYER_ACTION_DOWN);
+            player_.actionOff(map_, PLAYER_ACTION_DOWN);
             break;
         default:
             break;

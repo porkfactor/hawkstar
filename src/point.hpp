@@ -47,20 +47,6 @@ namespace hawkstar
             return *this;
         }
 
-        point &operator+=(vector<value_type> const &v)
-        {
-            x_ += v.x();
-            y_ += v.y();
-            return *this;
-        }
-
-        point &operator-=(vector<value_type> const &v)
-        {
-            x_ -= v.x();
-            y_ -= v.y();
-            return *this;
-        }
-
         inline value_type x() const noexcept
         {
             return x_;
@@ -78,13 +64,27 @@ namespace hawkstar
 
         friend inline bool operator!=(point const &l, point const &r)
         {
-            return (l.x_ != r.y_) || (l.y_ != r.y_);
+            return (l.x_ != r.x_) || (l.y_ != r.y_);
+        }
+
+        point &operator+=(vector<value_type> const &v)
+        {
+            x_ += v.x();
+            y_ += v.y();
+            return *this;
         }
 
         friend inline point operator+(point const &l, vector<value_type> const &v)
         {
             point result{l};
             return result += v;
+        }
+
+        point &operator-=(vector<value_type> const &v)
+        {
+            x_ -= v.x();
+            y_ -= v.y();
+            return *this;
         }
 
         friend inline point operator-(point const &l, vector<value_type> const &v)
@@ -103,10 +103,6 @@ namespace hawkstar
     {
         return vector<_Type>(l.x() - r.x(), l.y() - r.y());
     }
-
-    using PointI = point<int>;
-    using PointF = point<float>;
-    using PointD = point<double>;
 }
 
 #endif

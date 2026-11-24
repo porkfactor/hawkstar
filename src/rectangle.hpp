@@ -1,6 +1,8 @@
 #ifndef HAWKSTAR_RECTANGLE_HPP_
 #define HAWKSTAR_RECTANGLE_HPP_
 
+#include <algorithm>
+
 #include "point.hpp"
 
 namespace hawkstar
@@ -10,6 +12,7 @@ namespace hawkstar
     {
     public:
         using value_type = _Type;
+        using point_type = point<value_type>;
 
         rectangle() :
             x_{},
@@ -29,9 +32,22 @@ namespace hawkstar
             rectangle(0, 0, pw, ph)
         {}
 
-        rectangle(point<value_type> const &p, value_type pw, value_type ph) :
+        rectangle(point_type const &p, value_type pw, value_type ph) :
             rectangle(p.x(), p.y(), pw, ph)
         {}
+
+        rectangle(point_type const &p1, point_type const &p2)
+        {
+            value_type minx{std::min(p1.x(), p2.x())};
+            value_type miny{std::min(p1.y(), p2.y())};
+            value_type maxx(std::max(p1.x(), p2.x()));
+            value_type maxy{std::max(p1.y(), p2.y())};
+
+            x_ = minx;
+            y_ = miny;
+            width_ = maxx - minx;
+            height_ = maxy - miny;
+        }
 
         rectangle(rectangle const &other) :
             rectangle(other.x_, other.y_, other.width_, other.height_)
@@ -86,6 +102,36 @@ namespace hawkstar
                 ;
         }
 
+        bool contains(point_type const &p) const noexcept
+        {
+            return
+                (left() <= p.x()) && 
+                (right() >= p.x()) &&
+                (bottom() <= p.y()) &&
+                (top() >= p.y());
+        }
+
+        template<typename _Other>
+        bool contains(point<_Other> const &p) const noexcept
+        {
+            return contains(point_type{p});
+        }
+
+        inline bool empty() const noexcept
+        {
+            return (width_ == value_type{}) && (height_ == value_type{});
+        }
+
+        value_type perimiter() const noexcept
+        {
+            return (height_ * value_type{2}) + (width_ * value_type{2});
+        }
+
+        value_type area() const noexcept
+        {
+            return height_ * width_;
+        }
+
         inline value_type x() const noexcept
         {
             return x_;
@@ -126,13 +172,18 @@ namespace hawkstar
             return y_ + height_;
         }
 
+        inline point_type position() const noexcept
+        {
+            return point_type{x_, y_};
+        }
+
         /**
          * @brief get the centre point of the rectangle
          * 
          */
-        inline point<value_type> centre() const noexcept
+        inline point_type centre() const noexcept
         {
-            return point<value_type>(
+            return point_type(
                 x_ + (width_ / value_type{2}),
                 y_ + (height_ / value_type{2})
             );
@@ -143,20 +194,17 @@ namespace hawkstar
          * 
          * @param pos                   the point on which to centre the rectangle
          */
-        void centre(point<value_type> const &pos) noexcept
+        void centre(point_type const &pos) noexcept
         {
             centre(pos.x(), pos.y());
         }
 
         void centre(value_type px, value_type py) noexcept
         {
-            move(
-                px - (width_ / value_type{2}),
-                py - (height_ / value_type{2})
-            );
+            move(px - (width_ / value_type{2}), py - (height_ / value_type{2}));
         }
 
-        void move(point<value_type> const &pos) noexcept
+        void move(point_type const &pos) noexcept
         {
             move(pos.x(), pos.y());
         }
@@ -167,9 +215,58 @@ namespace hawkstar
             y_ = py;
         }
 
-        inline point<value_type> origin() const noexcept
+        rectangle &merge(rectangle const &other)
         {
-            return point<value_type>{x_, y_};
+            auto minx = std::min(x_, other.x_);
+            auto miny = std::min(y_, other.y_);
+            auto maxx = std::max(right(), other.right());
+            auto maxy = std::max(top(), other.top());
+
+            *this = rectangle{minx, miny, maxx - minx, maxy - miny};
+
+            return *this;
+        }
+
+        rectangle &merge(point_type const &p)
+        {
+            return merge(rectangle{p});
+        }
+
+        friend inline rectangle merge(rectangle const &l, rectangle const &r)
+        {
+            rectangle result{l};
+            return l.merge(r);
+        }
+
+        friend inline rectangle mrege(rectangle const &l, point_type const &r)
+        {
+            rectangle result{l};
+            return l.merge(r);
+        }
+
+        rectangle &intersect(rectangle const &other)
+        {
+            if (intersects(other))
+            {
+                auto minx = std::max(x_, other.x_);
+                auto maxx = std::min(right(), other.right());
+                auto miny = std::max(y_, other.y_);
+                auto maxy = std::min(top(), other.top());
+
+                *this = rectangle{minx, miny, maxx - minx, maxy - miny};
+            }
+            else
+            {
+                *this = rectangle{};
+            }
+
+            return *this;
+        }
+
+        friend inline rectangle intersect(rectangle const &l, rectangle const &r)
+        {
+            rectangle result{l};
+            return l.intersect(r);
         }
 
         friend inline bool operator>(rectangle const &l, rectangle const &r)
@@ -208,10 +305,6 @@ namespace hawkstar
         value_type width_;
         value_type height_;
     };
-
-    using RectI = rectangle<int>;
-    using RectF = rectangle<float>;
-    using RectD = rectangle<double>;
 }
 
 #endif

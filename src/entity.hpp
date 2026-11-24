@@ -1,9 +1,7 @@
 #ifndef HAWKSTAR_ENTITY_HPP_
 #define HAWKSTAR_ENTITY_HPP_
 
-#include "point.hpp"
-#include "rectangle.hpp"
-#include "vector.hpp"
+#include "types.hpp"
 
 /**
  * processing player movement
@@ -37,6 +35,7 @@ namespace hawkstar
         PLAYER_STATE_FREEFALL,
         PLAYER_STATE_CROUCHING,
         PLAYER_STATE_JUMPING,
+        PLAYER_STATE_COYOTE,
     };
 
     enum PlayerAction
@@ -47,32 +46,39 @@ namespace hawkstar
         PLAYER_ACTION_DOWN,
     };
 
+    class Application;
+    class StageMap;
+
     class Entity
     {
     public:
-        Entity();
+        Entity(Application *application);
 
-        void move(point<double> pos);
+        void move(world_point pos);
 
-        point<double> centre() const noexcept
+        world_point centre() const noexcept
         {
             return bounds_.centre();
         }
 
-        inline rectangle<double> const &bounds() const noexcept
+        inline world_rectangle const &bounds() const noexcept
         {
             return bounds_;
         }
 
-        void periodic(void);
+        void periodic(StageMap &map, double deltat);
 
-        void actionOn(enum PlayerAction);
-        void actionOff(enum PlayerAction);
+        void actionOn(StageMap &map, enum PlayerAction);
+        void actionOff(StageMap &map, enum PlayerAction);
 
     private:
-        rectangle<double> bounds_;
-        vector<double> velocity_;
-        vector<double> delta_velocity_;
+        void enterState(enum PlayerState);
+
+        Application *application_;
+
+        world_rectangle bounds_;
+        world_vector velocity_;
+        world_vector delta_velocity_;
         double max_velocity_;
         double max_jump_;
         enum PlayerState state_;

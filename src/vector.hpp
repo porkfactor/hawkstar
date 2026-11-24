@@ -54,7 +54,7 @@ namespace hawkstar
             return y_;
         }
     
-        void clear(void)
+        void zero(void)
         {
             x_ = value_type{};
             y_ = value_type{};
@@ -124,6 +124,11 @@ namespace hawkstar
             return *this;
         };
     
+        vector operator-() const
+        {
+            return vector{-x_, -y_};
+        }
+
         inline friend vector operator+(vector const &l, vector const &r)
         {
             vector result{l};

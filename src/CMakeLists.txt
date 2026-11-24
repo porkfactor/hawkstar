@@ -9,6 +9,7 @@ add_executable(hawkstar
     ${CMAKE_CURRENT_SOURCE_DIR}/stage_map.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/stage_map.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/point.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/types.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/vector.hpp
 )
 

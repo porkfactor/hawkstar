@@ -3,9 +3,8 @@
 
 #include <blessed/span.hpp>
 
+#include "types.hpp"
 #include "camera.hpp"
-#include "rectangle.hpp"
-#include "point.hpp"
 #include "stage_map.hpp"
 #include "entity.hpp"
 
