@@ -42,43 +42,70 @@ namespace hawkstar
     {}
 
     /**
-     * so, we need a FSM for each entity. no biggie. the usual FSM dealio
+     * FSM processing. 
      * 
-     *     state + event [if guard] -> action
+     * input event -> check state / action trigger, update state
      * 
-     * design is always state oriented, implementation is always event 
-     * oriented. make it state oriented is probably safest bet. 
+     * processing loop
+     *     check state, try perform action, update state
      * 
-     * so we have a table of states <s1, s2, ... sn> and on an event
-     * we look at the event triggers for that state. we may have multiple
-     * possible transitions for any event so might as well 
+     * running:
+     *     check we can complete action -> interact with map to determine
+     *     if we can complete the action, or if the action would be blocked
      * 
+     *     if the action is blocked, perform partial movement (if any) and
+     *     update state.
      * 
-     * ok, refigure this. we have two things:
-     *     - input events coming from some point in the processing loop
-     *     - movement events coming from the scene processing. 
+     * jumping:
+     *     check we can complete action -> interact with map to determine
+     *     if we can complete the action, or if the action would be blocked
      * 
-     * we currently don't consider that the scene processing triggers events
-     * very well (or, at least, the only event triggers currently come from
-     * input). 
+     *     if the action is blocked, perform partial movement (if any) and
+     *     update state.
      * 
-     * how do we want to handle coyote time? we need to update the scene (i.e.
-     * move the player according to their velocity), check if they are grounded
-     * and do the needful. 
+     * freefall:
+     *     check we can complete action -> interact with map to determine
+     *     if we can complete the action, or if the action would be blocked
      * 
-     * so, in effect the scene processing needs to:
-     *     1/ check if we're moving
-     *     2/ if true, check the player is able to complete the movement
-     *     3/ move the player according to the restrictions
-     *     4/ check the player location and update state (i.e. does the
-     *     completion of this movement trigger anything).
+     *     if the action is blocked, perform partial movement (if any) and
+     *     update state.
      * 
-     * seems a bit off having to perform two location checks, but optimise
-     * when its a problem.
+     *     ... this is starting to feel a bit repetitive.
      * 
-     * addendum: these may be distinct location checks. at the very least we 
-     * can assume tacit location information in the input processing since this
-     * is based on state that has already updated in relation to the last cycle.
+     * Now, for additional things. We want to potential trigger actions for
+     * objects the player touches. Examples:
+     *     - Floor based triggers. We must signal to all tiles when an entity
+     *       traverses
+     *     - Floor based traps. following the trigger, our continual ground
+     *       detection should recognize a move to freefall. 
+     *     - Wall based traps. We must signal to tiles we attempt to run/jump
+     *       into (i.e. failed/blocked traversal), and perform collission 
+     *       signal
+     *     - Ceiling based traps. Notionally the same as wall based.
+     *     - Fall damage. When downward motion is blocked, we need to check
+     *       our impact velocity and hurt outselves accordingly.
+     * 
+     *     - Moving platforms. The player must move with the platform. Moving
+     *       the platform must send a notification to all objects on the
+     *       platform. the OO approach would be to have a pub/sub pattern so that
+     *       on entering the platform the player is implicitly subscribed to
+     *       movement notifications. This would equally work with horizontally
+     *       scrolling platforms. Bonus - the player velocity would need to be
+     *       summed with the platform velocity.
+     * 
+     * Thought: rather than ground based detection, do we just keep gravity as
+     * a constant force, and as walking will have blocked collisions? it's a more
+     * elegant solution since we're not performing separate ground checks. the FSM
+     * would then deal only with the application of external forces.
+     * 
+     * still might not hurt to have a 'are we on the ground?' check. also, how do 
+     * we track the fact that we're no longer touching a tile. A 'bounce' is one
+     * thing, a persistent sit is another. the inelegant approach would be to (on
+     * each motion) gather a list of touched tiles, and delta against previously
+     * touched tiles. it would work, but feels crunchy. 
+     * 
+     * try-move needs moving into entity. there's nothing to negotiate on this point. 
+     * 
      * 
      */
 
@@ -97,7 +124,19 @@ namespace hawkstar
         }
     }
 
-    void Entity::actionOn(StageMap &map SDL_UNUSED, enum PlayerAction a)
+    template<typename _Type>
+    static inline _Type constexpr align_floor(_Type value, _Type align)
+    {
+        return value & ~(align - 1);
+    }
+
+    template<typename _Type>
+    static inline _Type constexpr align_ceil(_Type value, _Type align)
+    {
+        return align_floor(value +  align - 1, align);
+    }
+
+    void Entity::actionOn(StageMap const &map SDL_UNUSED, enum PlayerAction a)
     {
         SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "+action [%d] state=%d\n",
             static_cast<int>(a),
@@ -135,7 +174,8 @@ namespace hawkstar
             case PLAYER_ACTION_DOWN:
                 break;
             case PLAYER_ACTION_UP:
-                
+                velocity_ = world_vector{velocity_.x(), max_velocity_};
+                enterState(PLAYER_STATE_JUMPING);
                 break;
             }
             break;
@@ -164,7 +204,7 @@ namespace hawkstar
         );
     }
 
-    void Entity::actionOff(StageMap &map SDL_UNUSED, enum PlayerAction a)
+    void Entity::actionOff(StageMap const &map SDL_UNUSED, enum PlayerAction a)
     {
         SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "-action [%d] state=%d\n",
             static_cast<int>(a),
@@ -201,7 +241,7 @@ namespace hawkstar
 
     }
 
-    void Entity::periodic(StageMap &map SDL_UNUSED, double deltat SDL_UNUSED)
+    void Entity::periodic(StageMap const &map SDL_UNUSED, double deltat SDL_UNUSED)
     {
         SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "periodic state=%d\n",
             static_cast<int>(state_)
@@ -223,7 +263,7 @@ namespace hawkstar
                     enterState(PLAYER_STATE_RUNNING);
                 }
 
-                bounds_.move(bounds_.position() + velocity_);
+                try_move(map, velocity_);
             }
             break;
         case PLAYER_STATE_RUNNING:
@@ -252,8 +292,7 @@ namespace hawkstar
                 // TODO: 3/ perform movement
                 // TODO: 4/ put in stop state if required
             #else
-                auto position = map.try_move(bounds_.position(), velocity_);
-                bounds_.move(position);
+                try_move(map, velocity_);
             #endif
             }
             break;
@@ -266,8 +305,7 @@ namespace hawkstar
                 else
                 {
                     velocity_ += delta_velocity_;
-                    auto position = map.try_move(bounds_.position(), velocity_);
-                    bounds_.move(position);
+                    try_move(map, velocity_);
                 }
             }
             break;
@@ -281,7 +319,7 @@ namespace hawkstar
                 else
                 {
                     velocity_ += -gravity;
-                    bounds_.move(bounds_.position() + velocity_);
+                    try_move(map, velocity_);
                 }
             }
             break;
@@ -289,15 +327,11 @@ namespace hawkstar
             {
                 velocity_ += -gravity;
 
-                auto position = map.try_move(bounds_.position(), velocity_);
-
-                // TODO: temporary bodge while we fix the interface - detect if we hit something (badly)
-                if (position != (bounds_.position() + velocity_))
+                if (!try_move(map, velocity_))
                 {
-                    enterState(PLAYER_STATE_IDLE);
+                    velocity_ = world_vector{velocity_.x(), world_integral_t{}};
+                    enterState(velocity_.x() ? PLAYER_STATE_RUNNING : PLAYER_STATE_IDLE);
                 }
-
-                bounds_.move(position);
             }
             break;
         default:
@@ -309,5 +343,82 @@ namespace hawkstar
             velocity_.x(), velocity_.y(),
             delta_velocity_.x(), delta_velocity_.y()
         );
+    }
+
+    bool Entity::try_move(StageMap const &map, world_vector const &v) noexcept
+    {
+        world_point pos{this->bounds_.position()};
+        bool rv{true};
+
+        /* horizontal motion */
+        if (v.x())
+        {
+            auto ty = static_cast<tile_integral_t>(pos.y());
+            auto wx = pos.x() + v.x();
+
+            /* rightward motion */
+            if (v.x() > world_integral_t{})
+            {
+                pos += world_vector{v.x(), 0.0};
+            }
+            /* leftward motion */
+            else
+            {
+                auto start = align_floor(static_cast<tile_integral_t>(std::floor(pos.x())), map.tile_width) / map.tile_width;
+                auto end = align_ceil(static_cast<tile_integral_t>(std::floor(wx)), map.tile_width) / map.tile_width;
+
+                for (auto tx = start; tx >= end; --tx)
+                {
+                    if (map.getId(tx - 1, ty) != 0)
+                    {
+                        wx = static_cast<world_integral_t>(tx * map.tile_width);
+                        rv = false;
+                        break;
+                    }
+                }
+
+                pos = world_point{wx, pos.y()};
+            }
+        }
+
+        /* vertical motion */
+        if (v.y())
+        {
+            auto tx = static_cast<tile_integral_t>(pos.x());
+            auto wy = pos.y() + v.y();
+
+            /* upward motion */
+            if (v.y() > world_integral_t{})
+            {
+                pos += world_vector{0.0, v.y()};
+            }
+            /* downward motion */
+            else
+            {
+                auto start = align_floor(static_cast<tile_integral_t>(std::floor(pos.y())), map.tile_height) / map.tile_height;
+                auto end = align_ceil(static_cast<tile_integral_t>(std::floor(wy)), map.tile_height) / map.tile_height;
+
+                for (auto ty = start; ty >= end; --ty)
+                {
+                    if (map.getId((tx / map.tile_height), ty - 1) != 0)
+                    {
+                        wy = static_cast<world_integral_t>(ty * map.tile_height);
+                        rv = false;
+                        break;
+                    }
+                }
+
+                pos = world_point(pos.x(), wy);
+            }
+        }
+
+        this->move(pos);
+
+        return rv;
+    }
+
+    void Entity::move(world_point const &pos)
+    {
+        bounds_.move(pos);
     }
 }

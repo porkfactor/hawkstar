@@ -2,6 +2,7 @@
 #include <SDL3/SDL.h>
 
 #include "stage_map.hpp"
+#include "entity.hpp"
 
 namespace hawkstar
 {
@@ -211,115 +212,5 @@ namespace hawkstar
             static_cast<world_integral_t>(tile_width),
             static_cast<world_integral_t>(tile_height)
         };
-    }
-
-    #define RTE_ALIGN_FLOOR(val, align)     (typeof(val))((val) & (~((typeof(val))((align) - 1))))
-
-    template<typename _Type>
-    static inline _Type constexpr align_floor(_Type value, _Type align)
-    {
-        return value & ~(align - 1);
-    }
-
-    template<typename _Type>
-    static inline _Type constexpr align_ceil(_Type value, _Type align)
-    {
-        return align_floor(value +  align - 1, align);
-    }
-
-    /**
-     * problem - this won't tell the caller whether they need to change state e.g.
-     * if we land during freefall.
-     */
-    world_point StageMap::try_move(world_point const &p, world_vector const &v) const noexcept
-    {
-        world_point pos{p};
-
-        /* horizontal motion */
-        if (v.x())
-        {
-            auto ty = static_cast<tile_integral_t>(pos.y());
-            auto wx = pos.x() + v.x();
-
-            /* rightward motion */
-            if (v.x() > world_integral_t{})
-            {
-                pos += world_vector{v.x(), 0.0};
-            }
-            /* leftward motion */
-            else
-            {
-                auto start = align_floor(static_cast<tile_integral_t>(std::floor(pos.x())), tile_width) / tile_width;
-                auto end = align_ceil(static_cast<tile_integral_t>(std::floor(wx)), tile_width) / tile_width;
-
-                for (auto tx = start; tx >= end; --tx)
-                {
-                    if (getId(tx - 1, ty) != 0)
-                    {
-                        wx = static_cast<world_integral_t>(tx * tile_width);
-                        break;
-                    }
-                }
-
-                pos = world_point{wx, pos.y()};
-            }
-        }
-
-        /* vertical motion */
-        if (v.y())
-        {
-            auto tx = static_cast<tile_integral_t>(pos.x());
-            auto wy = pos.y() + v.y();
-
-            /* upward motion */
-            if (v.y() > world_integral_t{})
-            {
-                pos += world_vector{0.0, v.y()};
-            }
-            /* downward motion */
-            else
-            {
-                auto start = align_floor(static_cast<tile_integral_t>(std::floor(pos.y())), tile_height) / tile_height;
-                auto end = align_ceil(static_cast<tile_integral_t>(std::floor(wy)), tile_height) / tile_height;
-
-                for (auto ty = start; ty >= end; --ty)
-                {
-                    if (getId((tx / tile_height), ty - 1) != 0)
-                    {
-                        wy = static_cast<world_integral_t>(ty * tile_height);
-                        break;
-                    }
-                }
-
-                pos = world_point(pos.x(), wy);
-            }
-        }
-
-        return pos;
-    }
-
-    bool StageMap::raycast(point<double> const &p, vector<double> const &direction SDL_UNUSED, double distance SDL_UNUSED) const noexcept
-    {
-        /**
-         * cast to the nearest item *at least* distance meters away, then measure the true distance
-         */
-        point<std::size_t> w(p);
-
-        /**
-         * how do we snap this to the tile grid - it depends on the direction. we're aiming for
-         * containment but... if we're casting up then we need to consider the bottom edge, if down
-         * then the top edge, etc.
-         * 
-         * 
-         */
-
-        return false;
-    }
-
-    bool StageMap::raycast(rectangle<double> const &r, vector<double> const &direction, double distance) const noexcept
-    {
-        // TODO: we could maybe optimize with edge hints
-        return raycast(point<double>{r.left(), r.bottom()}, direction, distance) ||
-            raycast(point<double>(r.right(), r.bottom()), direction, distance);
     }
 }

@@ -8,6 +8,8 @@
 
 namespace hawkstar
 {
+    class Entity;
+
     class StageMap
     {
     public:
@@ -36,12 +38,6 @@ namespace hawkstar
         world_rectangle getWorldRegion(tile_rectangle const &) const;
         world_rectangle getWorldRegion(tile_point const &) const;
         world_rectangle getWorldRegion(tile_integral_t, tile_integral_t) const;
-
-        bool has_intersection(point<double>);
-        bool raycast(world_point const &, world_vector const &, double = double{}) const noexcept;
-        bool raycast(world_rectangle const &, world_vector const &, double = double{}) const noexcept;
-
-        world_point try_move(world_point const &, world_vector const &) const noexcept;
 
     private:
         std::array<uint8_t, 256 * 256> data_;

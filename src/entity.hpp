@@ -54,7 +54,7 @@ namespace hawkstar
     public:
         Entity(Application *application);
 
-        void move(world_point pos);
+        void move(world_point const &pos);
 
         world_point centre() const noexcept
         {
@@ -66,21 +66,23 @@ namespace hawkstar
             return bounds_;
         }
 
-        void periodic(StageMap &map, double deltat);
+        void periodic(StageMap const &map, double deltat);
 
-        void actionOn(StageMap &map, enum PlayerAction);
-        void actionOff(StageMap &map, enum PlayerAction);
+        void actionOn(StageMap const &map, enum PlayerAction);
+        void actionOff(StageMap const &map, enum PlayerAction);
 
     private:
         void enterState(enum PlayerState);
 
-        Application *application_;
+        bool try_move(StageMap const &map, world_vector const &) noexcept;
+
+        Application *application_ SDL_UNUSED;
 
         world_rectangle bounds_;
         world_vector velocity_;
         world_vector delta_velocity_;
         double max_velocity_;
-        double max_jump_;
+        double max_jump_ SDL_UNUSED;
         enum PlayerState state_;
     };
 }
